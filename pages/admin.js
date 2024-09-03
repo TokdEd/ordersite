@@ -9,6 +9,8 @@ export default function Admin() {
 
   useEffect(() => {
     fetchCurrentOrder();
+    const interval = setInterval(fetchCurrentOrder, 5000); // 每5秒刷新一次
+    return () => clearInterval(interval);
   }, []);
 
   const fetchCurrentOrder = async () => {
@@ -16,15 +18,12 @@ export default function Admin() {
       const res = await fetch('/api/orders');
       if (res.ok) {
         const data = await res.json();
-        console.log('Fetched order:', data); // 添加日誌
         setCurrentOrder(data);
       } else if (res.status === 404) {
         setCurrentOrder(null);
-      } else {
-        console.error('Failed to fetch order:', await res.text());
       }
     } catch (error) {
-      console.error('Error fetching current order:', error);
+      console.error('Error fetching order:', error);
     }
   };
 
@@ -37,15 +36,23 @@ export default function Admin() {
         body: JSON.stringify({ restaurant, menu }),
       });
       if (res.ok) {
-        console.log('Order created successfully');
+        await fetchCurrentOrder();
         setRestaurant('');
         setMenu('');
-        fetchCurrentOrder();
-      } else {
-        console.error('Failed to create order:', await res.text());
       }
     } catch (error) {
       console.error('Error creating order:', error);
+    }
+  };
+
+  const handleEndOrder = async () => {
+    try {
+      const res = await fetch('/api/orders', { method: 'PUT' });
+      if (res.ok) {
+        setCurrentOrder(null);
+      }
+    } catch (error) {
+      console.error('Error ending order:', error);
     }
   };
 
@@ -79,7 +86,15 @@ export default function Admin() {
       <p>餐廳: {currentOrder.restaurant}</p>
       <h2>菜單:</h2>
       <pre>{currentOrder.menu}</pre>
-      {/* 這裡可以添加顯示訂單項目的代碼 */}
+      <h2>訂單項目:</h2>
+      <ul>
+        {currentOrder.items && currentOrder.items.map((item, index) => (
+          <li key={index}>
+            用戶 {item.userId}: {item.item} - 備註: {item.note}
+          </li>
+        ))}
+      </ul>
+      <button onClick={handleEndOrder}>結束訂單</button>
     </div>
   );
 }

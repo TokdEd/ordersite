@@ -3,6 +3,8 @@ import { useRouter } from 'next/router';
 
 export default function Order() {
   const [currentOrder, setCurrentOrder] = useState(null);
+  const [selectedItem, setSelectedItem] = useState('');
+  const [note, setNote] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -15,25 +17,61 @@ export default function Order() {
       if (res.ok) {
         const data = await res.json();
         setCurrentOrder(data);
-      } else {
-        console.error('Failed to fetch order');
+      } else if (res.status === 404) {
+        setCurrentOrder(null);
       }
     } catch (error) {
-      console.error('Error fetching current order:', error);
+      console.error('Error fetching order:', error);
+    }
+  };
+
+  const handleOrder = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item: selectedItem, note }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        alert('訂單已提交');
+        setSelectedItem('');
+        setNote('');
+        setCurrentOrder(data.order);
+      }
+    } catch (error) {
+      console.error('Error submitting order:', error);
     }
   };
 
   if (!currentOrder) {
-    return <div>Loading...</div>;
+    return <div>目前沒有進行中的訂單</div>;
   }
 
   return (
     <div>
-      <h1>當前訂單</h1>
-      <p>餐廳: {currentOrder.restaurant}</p>
-      <h2>菜單:</h2>
-      <pre>{currentOrder.menu}</pre>
-      {/* 添加訂單表單等其他內容 */}
+      <h1>{currentOrder.restaurant} 訂單</h1>
+      <form onSubmit={handleOrder}>
+        <select
+          value={selectedItem}
+          onChange={(e) => setSelectedItem(e.target.value)}
+          required
+        >
+          <option value="">選擇項目</option>
+          {currentOrder.menu.split('\n').map((item, index) => (
+            <option key={index} value={item}>
+              {item}
+            </option>
+          ))}
+        </select>
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="備註"
+        />
+        <button type="submit">提交訂單</button>
+      </form>
     </div>
   );
 }
