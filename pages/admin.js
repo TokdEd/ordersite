@@ -9,8 +9,8 @@ export default function Admin() {
 
   useEffect(() => {
     fetchCurrentOrder();
-    const interval = setInterval(fetchCurrentOrder, 5000); // 每5秒刷新一次
-    return () => clearInterval(interval);
+    //const interval = setInterval(fetchCurrentOrder, 5000); // 每5秒刷新一次
+    //return () => clearInterval(interval);
   }, []);
 
   const fetchCurrentOrder = async () => {
@@ -47,12 +47,27 @@ export default function Admin() {
 
   const handleEndOrder = async () => {
     try {
-      const res = await fetch('/api/orders', { method: 'PUT' });
+      console.log('Sending request to end order');
+      const res = await fetch('/api/orders', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      const data = await res.json();
+      console.log('Response:', res.status, data);
+  
       if (res.ok) {
+        alert(data.message);
         setCurrentOrder(null);
+      } else {
+        console.error('Failed to end order:', data);
+        alert(`結束訂單失敗: ${data.message}`);
       }
     } catch (error) {
       console.error('Error ending order:', error);
+      alert('結束訂單時發生錯誤');
     }
   };
 
@@ -86,7 +101,7 @@ export default function Admin() {
       <p>餐廳: {currentOrder.restaurant}</p>
       <h2>菜單:</h2>
       <pre>{currentOrder.menu}</pre>
-      <h2>訂單項目:</h2>
+      <h2>用戶訂單:</h2>
       <ul>
         {currentOrder.items && currentOrder.items.map((item, index) => (
           <li key={index}>
