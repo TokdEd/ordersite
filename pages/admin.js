@@ -54,10 +54,10 @@ export default function Admin() {
           'Content-Type': 'application/json'
         }
       });
-  
+
       const data = await res.json();
       console.log('Response:', res.status, data);
-  
+
       if (res.ok) {
         alert(data.message);
         setCurrentOrder(null);

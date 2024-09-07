@@ -31,7 +31,7 @@ export default async function handler(req, res) {
       }
       console.log('No current order found');
       return res.status(404).json({ message: '沒有進行中的訂單' });
-    } 
+    }
     else if (req.method === 'POST') {
       if (user.isAdmin) {
         // 管理員創建新訂單
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
           const newItem = { userId: user.id, item, note };
           await kv.rpush(`order:${currentOrderId}:items`, JSON.stringify(newItem));
           console.log('Added new item to order:', newItem);
-          
+
           // 獲取更新後的訂單數據
           const updatedOrder = await kv.get(`order:${currentOrderId}`);
           const items = await kv.lrange(`order:${currentOrderId}:items`, 0, -1);
@@ -65,13 +65,13 @@ export default async function handler(req, res) {
               return item;
             }
           });
-          
+
           return res.status(200).json({ message: '訂單已提交', order: updatedOrder });
         } else {
           return res.status(404).json({ message: '沒有進行中的訂單' });
         }
       }
-    } 
+    }
     else if (req.method === 'PUT') {
       if (user.isAdmin) {
         // 結束訂單
@@ -86,7 +86,7 @@ export default async function handler(req, res) {
       } else {
         return res.status(403).json({ message: '只有管理員可以結束訂單' });
       }
-    } 
+    }
     else {
       return res.status(405).json({ message: '方法不允許' });
     }
