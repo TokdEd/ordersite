@@ -85,7 +85,7 @@ export default async function handler(req, res) {
         }
 
         const currentOrderId = await kv.get('currentOrder');
-        if (currentOrderId) {
+        if (!currentOrderId) {
           return res.status(404).json({ message: '沒有進行中的訂單' });
         }
 
